@@ -14,6 +14,13 @@ namespace ODATAT
         static async Task Main(string[] args)
         {
             //Create adapter data access, where OrderContext your DbContext
+            await TestODataQuery();
+
+            Console.ReadKey();
+        }
+
+        private static async Task TestODataQuery()
+        {
             var dataAdapter = new OeEfCoreDataAdapter<AppDB>();
             //Create query parser
             var parser = new OeParser(new Uri("http://dummy"), dataAdapter.BuildEdmModelFromEfCoreModel());
@@ -25,8 +32,6 @@ namespace ODATAT
             await parser.ExecuteGetAsync(uri, OeRequestHeaders.JsonDefault, response, CancellationToken.None);
             var s = Encoding.ASCII.GetString(response.ToArray());
             Console.WriteLine(s);
-
-            Console.ReadKey();
         }
     }
 }

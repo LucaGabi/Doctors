@@ -1,0 +1,25 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+</head>
+<body>
+    <script>
+
+        fetch(`http://localhost:5000/odata/Doctors?
+                    $select=Name&
+                    $filter=DoctorSpecializations/any()&
+                    $expand=DoctorSpecializations(
+                        $select=SpecializationId,Specialization;
+                        $expand=Specialization($select=Name))`)
+
+            .then(async (x) => {
+                var s = await x.json();
+                console.log(s);
+                document.writeln(s);
+            });
+
+    </script>
+</body>
+</html>
