@@ -13,27 +13,35 @@ using ODATAT.Data.DB;
 using OdataToEntity;
 using OdataToEntity.EfCore;
 using Microsoft.AspNetCore.Http.Extensions;
+using OdataToEntity.AspNetCore;
 
 namespace odatahttp
 {
     public class Startup
     {
+        private static OeParser _parser;
 
         private static async Task<string> testODataQuery(string url)
         {
-            var dataAdapter = new OeEfCoreDataAdapter<AppDB>();
-            //Create query parser
-            var parser = new OeParser(new Uri("http://localhost:5000/odata/"), dataAdapter.BuildEdmModelFromEfCoreModel());
+            
             //Query
             //var uri = new Uri("http://odata/Doctors?$filter=DoctorSpecializations/any()&$expand=DoctorSpecializations($select=SpecializationId,Specialization;$expand=Specialization($select=Name))&$select=Name");
             var uri = new Uri(url);
             //The result of the query
             var response = new MemoryStream();
             //Execute query
-            await parser.ExecuteGetAsync(uri, OeRequestHeaders.JsonDefault, response, CancellationToken.None);
+            await _parser.ExecuteGetAsync(uri, OeRequestHeaders.JsonDefault, response, CancellationToken.None);
             var s = Encoding.ASCII.GetString(response.ToArray());
             Console.WriteLine(s);
             return s;
+        }
+
+        private static OeParser InitParser()
+        {
+            var dataAdapter = new OeEfCoreDataAdapter<AppDB>();
+            //Create query parser
+            var parser = new OeParser(new Uri("http://localhost:5000/odata/"), dataAdapter.BuildEdmModelFromEfCoreModel());
+            return parser;
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -54,6 +62,8 @@ namespace odatahttp
             {
                 app.UseDeveloperExceptionPage();
             }
+            _parser = InitParser();
+            app.UseOdataToEntityMiddleware("/odata",_parser.EdmModel);
 
             app.Run(async (context) =>
             {
